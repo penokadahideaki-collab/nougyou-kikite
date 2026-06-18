@@ -92,7 +92,11 @@
 /* 簡易パスコード錠。合言葉のSHA-256ハッシュだけを保持（平文は持たない）。
    一度入れたらこの端末では記憶。※簡易ロックであり、サーバーに個人情報は置いていない。 */
 (function(){
-  const PASS_HASH="87fe0572849ef812d872939a71ceb8ab2108152f54053ceec9906847292c250e";
+  // 合言葉は「ぶどう10」または「budou10」(大文字小文字問わず)。平文は持たずハッシュで照合。
+  const PASS_HASHES=[
+    "87fe0572849ef812d872939a71ceb8ab2108152f54053ceec9906847292c250e", // ぶどう10
+    "ceaa09eb6e8495946783679db00819d1bc6a8c1eb3c958ab1a16c0b02f5b402a"  // budou10
+  ];
   const gate=document.getElementById("gate");
   if(localStorage.getItem("nb_unlocked")==="1"){ gate.remove(); return; }
   async function sha256hex(s){
@@ -101,10 +105,12 @@
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
   async function tryUnlock(){
-    const h=await sha256hex(document.getElementById("gateInput").value.trim());
-    if(h===PASS_HASH){ localStorage.setItem("nb_unlocked","1"); gate.remove(); }
-    else { document.getElementById("gateErr").textContent= h===null
-      ? "安全な接続(https)で開いてください。" : "ちがうようです。もう一度。"; }
+    const raw=document.getElementById("gateInput").value.trim();
+    const h1=await sha256hex(raw);
+    const h2=await sha256hex(raw.toLowerCase());
+    if(h1===null){ document.getElementById("gateErr").textContent="安全な接続(https)で開いてください。"; return; }
+    if(PASS_HASHES.includes(h1)||PASS_HASHES.includes(h2)){ localStorage.setItem("nb_unlocked","1"); gate.remove(); }
+    else { document.getElementById("gateErr").textContent="ちがうようです。もう一度。"; }
   }
   document.getElementById("gateBtn").onclick=tryUnlock;
   document.getElementById("gateInput").addEventListener("keydown",e=>{ if(e.key==="Enter") tryUnlock(); });
