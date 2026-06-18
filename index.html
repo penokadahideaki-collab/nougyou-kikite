@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3b7a3f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌱%3C/text%3E%3C/svg%3E">
+<title>農業10年の本づくり ── AI聞き手</title>
+<style>
+  :root{
+    --green:#3b7a3f; --green-d:#2c5e2f; --soil:#6b4f3a;
+    --bg:#f6f4ec; --card:#ffffff; --ink:#22281f; --sub:#6b7363;
+    --accent:#e08a2e; --rec:#d23f3f; --line:#e3e0d4;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    line-height:1.7;-webkit-text-size-adjust:100%}
+  header{background:var(--green);color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-top));
+    position:sticky;top:0;z-index:10;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  header h1{margin:0;font-size:1.05rem;font-weight:700;letter-spacing:.02em}
+  header p{margin:2px 0 0;font-size:.74rem;opacity:.85}
+  main{max-width:560px;margin:0 auto;padding:14px 14px 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:16px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .tabs{display:flex;gap:6px;margin:14px 0 4px}
+  .tab{flex:1;text-align:center;padding:10px 6px;border-radius:12px;border:1px solid var(--line);
+    background:#fff;color:var(--sub);font-size:.82rem;font-weight:600;cursor:pointer}
+  .tab.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .qlist{display:flex;flex-direction:column;gap:8px}
+  .qbtn{text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:13px 14px;cursor:pointer;display:flex;gap:10px;align-items:flex-start}
+  .qbtn:active{background:#f0efe6}
+  .qbtn .tag{flex:0 0 auto;background:#eef3ea;color:var(--green-d);border-radius:8px;
+    font-size:.7rem;font-weight:700;padding:3px 8px;margin-top:2px}
+  .qbtn .qt{font-size:.92rem}
+  .free input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:1rem}
+  .hide{display:none!important}
+  /* 録音画面 */
+  #stage .q{font-size:1.12rem;font-weight:700;margin:2px 0 4px}
+  #stage .theme{font-size:.75rem;color:var(--accent);font-weight:700}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .btn{border:none;border-radius:14px;padding:13px 16px;font-size:.95rem;font-weight:700;
+    cursor:pointer;flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .btn.primary{background:var(--green);color:#fff}
+  .btn.ghost{background:#fff;color:var(--green-d);border:1px solid var(--green)}
+  .btn.soft{background:#eef3ea;color:var(--green-d)}
+  .btn:disabled{opacity:.45}
+  .mic{background:var(--green);color:#fff;font-size:1.15rem;padding:18px;border-radius:18px;width:100%;
+    margin-top:6px;box-shadow:0 4px 0 var(--green-d)}
+  .mic.rec{background:var(--rec);box-shadow:0 4px 0 #9e2b2b;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+  .live{margin-top:12px;min-height:70px;background:#fbfaf4;border:1px dashed var(--line);
+    border-radius:12px;padding:12px;font-size:1rem}
+  .live .interim{color:var(--sub)}
+  textarea{width:100%;min-height:130px;padding:12px;border:1px solid var(--line);border-radius:12px;
+    font-size:1rem;line-height:1.7;resize:vertical;font-family:inherit}
+  .hint{font-size:.78rem;color:var(--sub);margin:8px 2px}
+  .records h2{font-size:.95rem;margin:18px 4px 6px}
+  .rec-item{font-size:.85rem;border-left:3px solid var(--green);padding:6px 0 6px 10px;margin:8px 0;color:#3a4233}
+  .rec-item b{color:var(--green-d)}
+  .warn{background:#fff4e5;border:1px solid #f0d8aa;color:#7a531a;border-radius:12px;padding:10px 12px;font-size:.82rem}
+  .mini{font-size:.74rem;color:var(--sub);text-align:center;margin-top:22px}
+  a{color:var(--green-d)}
+  /* パスコード錠 */
+  #gate{position:fixed;inset:0;z-index:1000;background:var(--green);
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .gatebox{background:#fff;border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .gatebox .gicon{font-size:2.6rem}
+  .gatebox h2{margin:6px 0 2px;font-size:1.1rem;color:var(--green-d)}
+  .gatebox p{margin:4px 0 14px;font-size:.86rem;color:var(--sub)}
+  .gatebox input{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font-size:1.1rem;text-align:center}
+  .gatebox button{width:100%;margin-top:12px;border:none;background:var(--green);color:#fff;
+    padding:14px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer}
+  .gerr{color:#c0392b;font-size:.82rem;min-height:1.2em;margin-top:8px!important}
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="gatebox">
+    <div class="gicon">🍇</div>
+    <h2>農業10年の本づくり</h2>
+    <p>合言葉を入れてください</p>
+    <input id="gateInput" type="password" inputmode="text" autocomplete="off" placeholder="合言葉">
+    <button id="gateBtn">はいる</button>
+    <p id="gateErr" class="gerr"></p>
+  </div>
+</div>
+<script>
+/* 簡易パスコード錠。合言葉のSHA-256ハッシュだけを保持（平文は持たない）。
+   一度入れたらこの端末では記憶。※簡易ロックであり、サーバーに個人情報は置いていない。 */
+(function(){
+  const PASS_HASH="87fe0572849ef812d872939a71ceb8ab2108152f54053ceec9906847292c250e";
+  const gate=document.getElementById("gate");
+  if(localStorage.getItem("nb_unlocked")==="1"){ gate.remove(); return; }
+  async function sha256hex(s){
+    if(!(window.crypto&&crypto.subtle)){ return null; } // https/localhost以外では使えない
+    const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  async function tryUnlock(){
+    const h=await sha256hex(document.getElementById("gateInput").value.trim());
+    if(h===PASS_HASH){ localStorage.setItem("nb_unlocked","1"); gate.remove(); }
+    else { document.getElementById("gateErr").textContent= h===null
+      ? "安全な接続(https)で開いてください。" : "ちがうようです。もう一度。"; }
+  }
+  document.getElementById("gateBtn").onclick=tryUnlock;
+  document.getElementById("gateInput").addEventListener("keydown",e=>{ if(e.key==="Enter") tryUnlock(); });
+  document.getElementById("gateInput").focus();
+})();
+</script>
+<header>
+  <h1>🌱 農業10年の本づくり</h1>
+  <p>AI聞き手 ── 質問に、思い出した場面から話してください</p>
+</header>
+<main>
+
+  <div id="unsupported" class="card warn hide">
+    ⚠️ この端末のブラウザは「その場で文字起こし」に対応していません。<br>
+    <b>Android の Chrome</b> で開くと使えます。iPhone の場合は、下の「キーボードのマイク」で音声入力してから保存してください。
+  </div>
+
+  <!-- 質問選択 -->
+  <section id="picker">
+    <div class="tabs">
+      <div class="tab on" data-tab="core">核心5問</div>
+      <div class="tab" data-tab="theme">テーマ別</div>
+      <div class="tab" data-tab="free">自由に話す</div>
+    </div>
+    <div class="card">
+      <div id="list-core" class="qlist"></div>
+      <div id="list-theme" class="qlist hide"></div>
+      <div id="list-free" class="free hide">
+        <p class="hint">話したいテーマを入れて、自由に話してください。</p>
+        <input id="freeTheme" type="text" placeholder="テーマ（例：鳥獣害）" inputmode="text">
+        <div class="row"><button class="btn primary" id="freeStart">このテーマで話す</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 録音ステージ -->
+  <section id="stage" class="hide">
+    <div class="card">
+      <div class="theme" id="stTheme"></div>
+      <div class="q" id="stQ"></div>
+      <button class="btn soft" id="speakBtn" style="flex:0 0 auto;min-width:0;padding:8px 12px">🔊 もう一度読み上げる</button>
+
+      <button class="mic" id="micBtn">🎤 タップして話す</button>
+      <div class="hint" id="micHint">マイクの使用を「許可」してください。話し終えたら、もう一度タップで停止。</div>
+
+      <div class="live" id="live"><span style="color:var(--sub)">ここに話した言葉が出ます…</span></div>
+
+      <p class="hint">↓ 聞き間違いはその場で直せます（あとでも直せます）</p>
+      <textarea id="text" placeholder="文字起こし結果"></textarea>
+
+      <div class="row">
+        <button class="btn primary" id="saveBtn">💾 保存</button>
+        <button class="btn ghost" id="backBtn">← 質問へ戻る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 今日の記録 -->
+  <section class="records" id="recordsWrap">
+    <h2>📒 きょう保存したもの</h2>
+    <div id="records"><p class="hint" style="margin-left:4px">まだありません。</p></div>
+    <div class="row" id="exportRow" style="display:none">
+      <button class="btn primary" id="copyAll">📋 まとめてコピー</button>
+      <button class="btn ghost" id="shareAll">📤 共有（Claudeへ）</button>
+    </div>
+    <div class="row" id="exportRow2" style="display:none;margin-top:8px">
+      <button class="btn soft" id="downloadAll">💾 ファイル保存(.md)</button>
+      <button class="btn soft" id="clearAll" style="color:#9e2b2b">🗑 きょうの記録を消す</button>
+    </div>
+  </section>
+
+  <p class="mini">作ったテキストは「コピー」か「共有」で Claude に渡してください →<br>
+  Claude が本の章に振り分けます。<br>※ 文字起こしはネット接続が必要です（読み上げはオフラインでもOK）。</p>
+</main>
+
+<script>
+/* ───────── 質問バンク（04_interview_questions.md と対応） ───────── */
+const CORE = [
+  ["最初の一年","農業を始めた、本当の理由はなんですか。思い出した場面から話してください。"],
+  ["お金の現実","お金のことで、これから始める人に一番伝えたい現実はなんですか。"],
+  ["人を雇う","農業は人間相手の仕事だと感じた場面を、ひとつ教えてください。"],
+  ["売る力","おいしいものを作るだけでは生き残れない、と痛感した出来事はなんですか。"],
+  ["続ける理由","これだけ厳しいのに、それでも辞めない理由を、言葉にするとなんですか。"],
+];
+const THEME = [
+  ["最初の一年","始める前に想像していた農業と、実際の農業の一番大きなギャップはなんでしたか。"],
+  ["お金の現実","始めるのに最初いくらかかって、売上が立つまでどれくらいかかりましたか。だいたいで。"],
+  ["人を雇う","初めて人を雇った日のこと、どんな気持ちだったか覚えていますか。"],
+  ["土地を守る","手間も赤字も覚悟して、それでも土地を手放さないのは、なぜですか。"],
+  ["自然と向き合う","収穫のタイミングを賭けで決めた夜のこと。何を見て、どう判断しましたか。"],
+  ["鳥獣害","初めて獣にやられた日、畑はどんな状態でしたか。最初に思ったことは。"],
+  ["観光農園","畑にお客さんを呼ぶことの、嬉しさとしんどさを教えてください。"],
+  ["加工と販売","加工品や完熟ジュースを作ろうと思ったきっかけは、なんでしたか。"],
+  ["地域と行政","地域や行政と関わって、ありがたかったこと、もどかしかったことは。"],
+  ["消費者へ","スーパーの値札を見て『この裏側を知らないんだな』と感じた瞬間は。"],
+];
+
+/* ───────── 要素 ───────── */
+const $ = id => document.getElementById(id);
+const picker=$("picker"), stage=$("stage");
+let cur = {theme:"", question:""};
+
+/* ───────── 質問リスト描画 ───────── */
+function fill(elId, arr){
+  const box=$(elId); box.innerHTML="";
+  arr.forEach(([th,q])=>{
+    const b=document.createElement("button");
+    b.className="qbtn";
+    b.innerHTML=`<span class="tag">${th}</span><span class="qt">${q}</span>`;
+    b.onclick=()=>openStage(th,q);
+    box.appendChild(b);
+  });
+}
+fill("list-core",CORE); fill("list-theme",THEME);
+
+/* タブ切替 */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on");
+    const k=t.dataset.tab;
+    $("list-core").classList.toggle("hide",k!=="core");
+    $("list-theme").classList.toggle("hide",k!=="theme");
+    $("list-free").classList.toggle("hide",k!=="free");
+  };
+});
+$("freeStart").onclick=()=>{
+  const th=$("freeTheme").value.trim()||"メモ";
+  openStage(th,"");
+};
+
+/* ───────── 読み上げ（TTS） ───────── */
+let jaVoice=null;
+function loadVoices(){
+  const vs=speechSynthesis.getVoices();
+  jaVoice=vs.find(v=>v.lang&&v.lang.toLowerCase().startsWith("ja"))||null;
+}
+if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function speak(txt){
+  if(!("speechSynthesis" in window)||!txt) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang="ja-JP"; u.rate=0.96; if(jaVoice)u.voice=jaVoice;
+  speechSynthesis.speak(u);
+}
+
+/* ───────── ステージを開く ───────── */
+function openStage(theme,question){
+  cur={theme,question};
+  $("stTheme").textContent="テーマ："+theme;
+  $("stQ").textContent=question||"（自由に話してください）";
+  $("speakBtn").classList.toggle("hide",!question);
+  $("text").value=""; finalText="";
+  $("live").innerHTML='<span style="color:var(--sub)">ここに話した言葉が出ます…</span>';
+  picker.classList.add("hide"); stage.classList.remove("hide");
+  window.scrollTo(0,0);
+  if(question) setTimeout(()=>speak(question),350);
+}
+$("backBtn").onclick=()=>{ stopRec(); stage.classList.add("hide"); picker.classList.remove("hide"); };
+$("speakBtn").onclick=()=>speak(cur.question);
+
+/* ───────── 文字起こし（STT） ───────── */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog=null, recognizing=false, finalText="";
+if(!SR){ $("unsupported").classList.remove("hide"); }
+
+function buildRecog(){
+  const r=new SR();
+  r.lang="ja-JP"; r.continuous=true; r.interimResults=true;
+  r.onresult=e=>{
+    let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalText+=t; else interim+=t;
+    }
+    $("live").innerHTML=(finalText||"")+'<span class="interim">'+interim+'</span>'||"…";
+    $("text").value=finalText;
+  };
+  r.onerror=ev=>{
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){
+      $("micHint").innerHTML='⚠️ マイクが許可されていません。ブラウザの設定でマイクを「許可」にしてください。';
+    } else if(ev.error==="no-speech"){
+      /* 無音。続行 */
+    }
+  };
+  r.onend=()=>{ if(recognizing){ try{r.start();}catch(_){} } };
+  return r;
+}
+function startRec(){
+  if(!SR){ $("unsupported").classList.remove("hide"); return; }
+  recog=buildRecog(); recognizing=true;
+  try{ recog.start(); }catch(_){}
+  const b=$("micBtn"); b.classList.add("rec"); b.textContent="■ 停止する";
+  $("micHint").textContent="録音中… 話し終えたら、もう一度タップで停止。";
+}
+function stopRec(){
+  recognizing=false;
+  if(recog){ try{recog.stop();}catch(_){} }
+  const b=$("micBtn"); b.classList.remove("rec"); b.textContent="🎤 タップして話す";
+}
+$("micBtn").onclick=()=>{ recognizing?stopRec():startRec(); };
+
+/* ───────── 保存（localStorage） ───────── */
+function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function nowHM(){ const d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function load(){ try{return JSON.parse(localStorage.getItem("nb_"+todayKey())||"[]");}catch(_){return [];} }
+function save(arr){ localStorage.setItem("nb_"+todayKey(),JSON.stringify(arr)); }
+
+$("saveBtn").onclick=()=>{
+  stopRec();
+  const text=$("text").value.trim();
+  if(!text){ alert("文字起こしが空です。話すか、入力してください。"); return; }
+  const arr=load();
+  arr.push({time:nowHM(),theme:cur.theme,question:cur.question,text});
+  save(arr); renderRecords();
+  speak("ありがとうございます。保存しました。");
+  stage.classList.add("hide"); picker.classList.remove("hide"); window.scrollTo(0,document.body.scrollHeight);
+};
+
+function mdSingle(r){
+  let s=`## 文字起こし（${r.time}）\n`;
+  if(r.question) s+=`\n> Q. ${r.question}\n`;
+  return s+`\n${r.text}\n`;
+}
+function mdAll(arr){
+  // テーマごとにまとめる
+  const byTheme={};
+  arr.forEach(r=>{ (byTheme[r.theme]=byTheme[r.theme]||[]).push(r); });
+  let out="";
+  Object.keys(byTheme).forEach(th=>{
+    out+=`# 音声入力 — ${todayKey()}\n\n- テーマ：${th}\n- 状態：raw（未処理）\n\n---\n\n`;
+    byTheme[th].forEach(r=>{ out+=mdSingle(r)+"\n"; });
+    out+="\n";
+  });
+  return out.trim()+"\n";
+}
+
+function renderRecords(){
+  const arr=load(); const box=$("records");
+  if(!arr.length){ box.innerHTML='<p class="hint" style="margin-left:4px">まだありません。</p>';
+    $("exportRow").style.display="none"; $("exportRow2").style.display="none"; return; }
+  box.innerHTML="";
+  arr.forEach(r=>{
+    const d=document.createElement("div"); d.className="rec-item";
+    const head=r.question?("Q. "+r.question):("テーマ："+r.theme);
+    d.innerHTML=`<b>${r.time}・${r.theme}</b><br>${head}<br>${r.text.slice(0,80)}${r.text.length>80?"…":""}`;
+    box.appendChild(d);
+  });
+  $("exportRow").style.display="flex"; $("exportRow2").style.display="flex";
+}
+
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(_){ // フォールバック
+    const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta);
+    ta.select(); try{document.execCommand("copy");}catch(__){} ta.remove(); return true;
+  }
+}
+$("copyAll").onclick=async()=>{ await copyText(mdAll(load())); $("copyAll").textContent="✓ コピーした"; setTimeout(()=>$("copyAll").textContent="📋 まとめてコピー",1600); };
+$("shareAll").onclick=async()=>{
+  const t=mdAll(load());
+  if(navigator.share){ try{ await navigator.share({title:"農業の本 音声入力",text:t}); }catch(_){} }
+  else{ await copyText(t); alert("共有に未対応の端末です。コピーしました。Claudeに貼ってください。"); }
+};
+$("downloadAll").onclick=()=>{
+  const blob=new Blob([mdAll(load())],{type:"text/markdown"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=todayKey()+"_音声入力.md"; a.click(); URL.revokeObjectURL(a.href);
+};
+$("clearAll").onclick=()=>{ if(confirm("きょう保存した記録を消します。コピー/共有で Claude に渡しましたか？")){ localStorage.removeItem("nb_"+todayKey()); renderRecords(); } };
+
+renderRecords();
+
+/* PWA: 任意でホーム画面に追加できるよう Service Worker を登録（失敗しても無視） */
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>

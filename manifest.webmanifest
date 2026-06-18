@@ -1,0 +1,14 @@
+{
+  "name": "農業10年の本づくり ── AI聞き手",
+  "short_name": "農業の本 聞き手",
+  "description": "AIが質問を読み上げ、あなたの答えを文字起こしして保存する音声インタビュー",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ec",
+  "theme_color": "#3b7a3f",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
